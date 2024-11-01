@@ -1,0 +1,47 @@
+---
+- name: Get the least used BVLAN and push the SPB configuration
+  connection: network_cli
+  gather_facts: no  # Disable gathering facts for efficiency
+  hosts: "{{ SWITCH_2 }}"
+  tasks:
+    - name: Gather running configuration
+      ale.aos8.aos8_command:
+        commands:
+          - show configuration snapshot
+      delegate_to: "{{ SWITCH_1 }}"
+      register: switch_config
+    - name: Display switch configuration
+      debug:
+        var: switch_config.stdout_lines
+
+    - name: Find least used BVLAN
+      block:
+        - name: Extract control BVLAN using regex
+          set_fact:
+            control_bvlan: "{{ switch_config.stdout | regex_search('spb isis control-bvlan (\\d+)', '\\1') }}[0]"
+        - name: Extract SPB-ISIS BVLANs using regex
+          set_fact:
+            spb_bvlans: "{{ switch_config.stdout | regex_findall('spb isis bvlan (\\d+)') }}"
+        - name: Extract Service BVLANs using regex
+          set_fact:
+            service_bvlans: "{{ switch_config.stdout | regex_findall('service \\d+ spb isid \\d+ bvlan (\\d+)') }}"
+        - name: Count occurrences of each BVLAN in services
+          set_fact:
+            bvlan_counts: "{{ bvlan_counts | default({}) | combine({item: service_bvlans | select('equalto', item) | list | length}) }}"
+          loop: "{{ spb_bvlans | difference([control_bvlan]) }}"  # Exclude dynamically found control-bvlan
+        - name: Find least used BVLAN
+          set_fact:
+            least_used_bvlan: "{{ bvlan_counts | dict2items | sort(attribute='value') | first }}"
+          delegate_to: localhost
+      when: switch_config.stdout is search('spb isis bvlan|service .* spb isid .* bvlan')
+
+    - name: Push SPB configuration
+      ale.aos8.aos8_config:
+        lines:
+          - service {{ SERVICE_ID }} spb isid {{ ISID }} bvlan {{ least_used_bvlan.key }}
+    - name: Push SPB access ports configuration
+      ale.aos8.aos8_config:
+        lines:
+          - service access port {{ item }} vlan-xlation enable
+          - service {{ SERVICE_ID }} sap port {{ item }}:{{ ACCESS_PORTS_TAG_2 }}
+      loop: "{{ SWITCH_2_ACCESS_PORTS }}"

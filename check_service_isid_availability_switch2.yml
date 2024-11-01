@@ -1,0 +1,44 @@
+---
+- name: Check the availability of the Service ID and VNID for SWITCH2
+  connection: network_cli
+  gather_facts: no  # Disable gathering facts for efficiency
+  hosts: "{{ SWITCH_2 }}"
+  tasks:
+    - name: Gather Services
+      ale.aos8.aos8_command:
+        commands:
+          - show service 
+      register: show_service
+    - name: Display Services
+      debug:
+        var: show_service.stdout_lines
+
+    - name: Parse show service output
+      set_fact:
+        service_ids: "{{ show_service.stdout[0] | regex_findall('^\\d+', multiline=True) }}"
+    - name: Display Service IDs already used
+      debug:
+        var: service_ids
+    - name: Check if SERVICE_ID is not equal to any already used Service IDs
+      fail:
+        msg: "Service ID is already in use."
+      when: SERVICE_ID | string in service_ids
+
+    - name: Gather SPB Services
+      ale.aos8.aos8_command:
+        commands:
+          - show service spb
+      register: show_service_spb
+    - name: Display SPB Services
+      debug:
+        var: show_service_spb.stdout
+    - name: Parse show service SPB output and extract ISID values
+      set_fact:
+        isids: "{{ show_service_spb.stdout[0] | regex_findall('\\n\\d+\\s+\\S+\\s+\\S+\\s+\\S+\\s+\\d+\\s+\\d+\\s+(\\d+)\\s+\\S+', multiline=True) }}"
+    - name: Display ISID values already used
+      debug:
+        var: isids
+    - name: Check if ISID is not equal to any ISIDs
+      fail:
+        msg: "ISID is already in use."
+      when: ISID | string in isids

@@ -1,0 +1,31 @@
+---
+- name: Check service status on SWITCH2
+  connection: network_cli
+  gather_facts: no  # Disable gathering facts for efficiency
+  hosts: "{{ SWITCH_2 }}"
+  tasks:
+    - name: Pause for 30 seconds to let the service coming up
+      ansible.builtin.pause:
+        seconds: 30
+
+    - name: Gather SPB services
+      ale.aos8.aos8_command:
+        commands:
+          - show spb isis services 
+      register: spb_isis_services_output
+    - name: Display show spb isis services
+      debug:
+        var: spb_isis_services_output.stdout_lines
+
+    - name: Extract ISID and far-end switch line
+      set_fact:
+        service_status: "{{ spb_isis_services_output.stdout | regex_search(ISID ~ '\\s+\\d+\\s+' ~ SWITCH_1 ~ '\\s+:\\s+[0-9a-f:]+') }}"
+    - name: Display ISID and far-end switch line
+      debug:
+        msg: "The service is UP and running."
+      when: service_status is not none
+
+    - name: Check if ISID and far-end switch are present
+      fail:
+        msg: "ISID and far-end switch not found in the SPB ISIS services output. Verify your the SPB ISIS configuration, and the physical ports."
+      when: service_status is none
