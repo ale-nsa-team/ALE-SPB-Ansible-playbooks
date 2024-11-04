@@ -20,7 +20,7 @@
       block:
         - name: Extract control BVLAN using regex
           set_fact:
-            control_bvlan: "{{ switch_config.stdout | regex_search('spb isis control-bvlan (\\d+)', '\\1') }}[0]"
+            control_bvlan: "{{ switch_config.stdout | regex_search('spb isis control-bvlan (\\d+)', '\\1') }}"
         - name: Extract control BVLAN from regex
           set_fact:
             control_bvlan: "{{ control_bvlan[0] }}"
