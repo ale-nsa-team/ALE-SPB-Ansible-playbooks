@@ -6,7 +6,7 @@
     ansible_command_timeout: 300
   hosts: "{{ SWITCH_2 }}"
   tasks:
-    - name: Wait that SWICTH 1 get the config
+    - name: Wait that SWICTH 1 gets the config
       ansible.builtin.pause:
         seconds: 10
     - name: Gather running configuration
