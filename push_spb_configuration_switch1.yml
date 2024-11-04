@@ -12,6 +12,9 @@
           - show configuration snapshot
       delegate_to: "{{ SWITCH_1 }}"
       register: switch_config
+    - name: Wait that SWICTH 2 get the config
+      ansible.builtin.pause:
+        seconds: 10
     - name: Display switch configuration
       debug:
         var: switch_config.stdout_lines
