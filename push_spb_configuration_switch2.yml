@@ -46,7 +46,7 @@
     - name: Push SPB configuration
       ale.aos8.aos8_config:
         lines:
-          - service {{ SERVICE_ID }} spb isid {{ ISID }} bvlan {{ least_used_bvlan.key }}
+          - service {{ SERVICE_ID }} spb isid {{ ISID }} bvlan {{ least_used_bvlan.key }} vlan-xlation enable
     - name: Push SPB access ports configuration
       ale.aos8.aos8_config:
         lines:
