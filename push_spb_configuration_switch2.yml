@@ -2,6 +2,8 @@
 - name: Get the least used BVLAN and push the SPB configuration
   connection: network_cli
   gather_facts: no  # Disable gathering facts for efficiency
+  vars:
+    ansible_command_timeout: 300
   hosts: "{{ SWITCH_2 }}"
   tasks:
     - name: Gather running configuration
