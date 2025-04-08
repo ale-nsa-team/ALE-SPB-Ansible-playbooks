@@ -51,5 +51,5 @@
       ale.aos8.aos8_config:
         lines:
           - service access port {{ item }} vlan-xlation enable
-          - service {{ SERVICE_ID }} sap port {{ item }}:{{ ACCESS_PORTS_TAG_2 }}
+          - service {{ SERVICE_ID }} sap port {{ item }}:{{ ACCESS_PORTS_TAG }}
       loop: "{{ SWITCH_2_ACCESS_PORTS }}"
