@@ -8,7 +8,7 @@
   tasks:
     - name: Wait that SWICTH 1 gets the config
       ansible.builtin.pause:
-        seconds: 10
+        seconds: 60
     - name: Gather running configuration
       ale.aos8.aos8_command:
         commands:
