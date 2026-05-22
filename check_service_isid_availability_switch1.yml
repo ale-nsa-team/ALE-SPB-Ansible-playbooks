@@ -3,6 +3,10 @@
   connection: network_cli
   gather_facts: no  # Disable gathering facts for efficiency
   hosts: "{{ SWITCH_1 }}"
+  vars:
+    ansible_command_timeout: 120
+    ansible_persistent_command_timeout: 120
+    ansible_persistent_connect_timeout: 60
   tasks:
     - name: Gather Services
       ale.aos8.aos8_command:
