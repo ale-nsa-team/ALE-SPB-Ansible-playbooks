@@ -6,18 +6,18 @@
     ansible_command_timeout: 300
   hosts: "{{ SWITCH_1 }}"
   tasks:
-  - name: Gather running configuration (retry while switch is busy)
-    ale.aos8.aos8_command:
-      commands:
-        - show configuration snapshot
-    register: switch_config
-    retries: 20
-    delay: 10
-    until:
-      - switch_config is succeeded
-      - switch_config.stdout is defined
-      - switch_config.stdout[0] is not search('System is busy')
-      - switch_config.stdout[0] is search('! Chassis:')
+    - name: Gather running configuration (retry while switch is busy)
+      ale.aos8.aos8_command:
+        commands:
+          - show configuration snapshot
+      register: switch_config
+      retries: 20
+      delay: 10
+      until:
+        - switch_config is succeeded
+        - switch_config.stdout is defined
+        - switch_config.stdout[0] is not search('System is busy')
+        - switch_config.stdout[0] is search('! Chassis:')
     - name: Wait that SWICTH 2 gets the config
       ansible.builtin.pause:
         seconds: 10
