@@ -9,12 +9,19 @@
     - name: Wait that SWICTH 1 gets the config
       ansible.builtin.pause:
         seconds: 10
-    - name: Gather running configuration
+    - name: Gather running configuration (retry while switch is busy)
       ale.aos8.aos8_command:
         commands:
           - show configuration snapshot
       delegate_to: "{{ SWITCH_1 }}"
       register: switch_config
+      retries: 20
+      delay: 10
+      until:
+        - switch_config is succeeded
+        - switch_config.stdout is defined
+        - switch_config.stdout[0] is not search('System is busy')
+        - switch_config.stdout[0] is search('! Chassis:')
     - name: Display switch configuration
       debug:
         var: switch_config.stdout_lines
